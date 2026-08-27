@@ -37,15 +37,6 @@ prompt_1 = PromptTemplate(
 )
 
 
-# formatted_prompt = prompt_1.invoke({'feedback':"TThe product looks good, but the performance is disappointing and needs improvement."})
-
-# result = model.invoke(formatted_prompt)
-
-# parsed_1_result = parser.invoke(result)
-
-
-# print(parsed_1_result.sentiment)
-
 
 classifier_chain = prompt_1 | model | parser
 
@@ -63,13 +54,16 @@ prompt_3 = PromptTemplate(
 
 
 branch_chain = RunnableBranch(
-    (lambda x:x.sentiment == "positive" , prompt_2 | model | parser_1),
-    (lambda x: x.sentiment== "negative",prompt_3|model |parser_1),
+    (lambda x:x["sentiment"].sentiment == "positive" , prompt_2 | model | parser_1),
+    (lambda x: x["sentiment"].sentiment == "negative",prompt_3|model |parser_1),
     RunnableLambda(lambda x: "The sentiment is not clear")
 )
 
 
-final_chain = classifier_chain | branch_chain
+final_chain = (RunnableParallel(
+    feedback=RunnableLambda(lambda x: x["feedback"]),
+    sentiment= classifier_chain
+)) | branch_chain
 
 result = final_chain.invoke({'feedback':"The product looks good, but the performance is disappointing and needs improvement."})
 
