@@ -6,7 +6,7 @@ load_dotenv()
 # model
 
 embed=MistralAIEmbeddings(
-                   model="mistral-embed",
+    model="mistral-embed",
 )
 
 
